@@ -11,6 +11,7 @@ library(stringr)
 library(mgcv)
 library(ggplot2)
 library(prophet)
+library(prophetuneR)
 #----------------------------#
 #Utility functions-----
 #----------------------------#

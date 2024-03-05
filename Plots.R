@@ -456,3 +456,15 @@ ggplot() +
   scale_x_continuous(breaks = scales::breaks_width(1),expand = c(0, 0)) 
 
 
+
+#weekly seasonality----
+#Erhardt
+df_cycling %>% 
+  filter(station == "Erhardt") %>% 
+  select(hour_weekday, direction_1) %>% 
+  group_by(hour_weekday) %>% 
+  summarise(mean_cyclists_per_day = mean(direction_1, na.rm=T))  %>% 
+  ggplot(aes(x= hour_weekday, y= mean_cyclists_per_day)) +
+  geom_line() +
+  ggtitle("Erhardt: Mean cyclists for hour_weekday, direction_2") +
+  xlab("day")
