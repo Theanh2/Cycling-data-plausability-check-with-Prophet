@@ -10,45 +10,76 @@ library(ggplot2)
 library(prophet)
 library(prophetuneR)
 
-#-----------------------------------------------#
-#----Prophet: test / train split each station----
-#-----------------------------------------------#
-df_d1 <- df %>% select(-direction_2) %>% rename(y = "direction_1")
-df_Arnulf_d1 <- df_d1 %>% filter(station == "Arnulf")
-df_Erhardt_d1 <- df_d1 %>% filter(station == "Erhardt")
-df_Kreuther_d1 <- df_d1 %>% filter(station == "Kreuther")
-df_Olympia_d1 <- df_d1 %>% filter(station == "Olympia")
-df_Margareten_d1 <- df_d1 %>% filter(station == "Margareten")
-df_Hirsch_d1 <- df_d1 %>% filter(station == "Hirsch")
-
-df_d2 <- df %>% select(-direction_1)  %>% rename(y = "direction_2")
-df_Arnulf_d2 <- df_d2 %>% filter(station == "Arnulf")
-df_Erhardt_d2 <- df_d2 %>% filter(station == "Erhardt")
-df_Kreuther_d2 <- df_d2 %>% filter(station == "Kreuther")
-df_Olympia_d2 <- df_d2 %>% filter(station == "Olympia")
-df_Margareten_d2 <- df_d2 %>% filter(station == "Margareten")
-df_Hirsch_d2 <- df_d2 %>% filter(station == "Hirsch")
-
+#------------------------------------------------------------------#
+#----Prophet: test / train split each station for each direction----
+#------------------------------------------------------------------#
 # Note: 
 # 1. Train set: year 2008 ~ 2019 (about 80%) / Test set: year 2020 ~ 2022 (about 20%)
 # 2. As discussed, let's consider only air_temperature and precipitation for weather information
 
-# Fit prophet model across stations
-df_train <- 
+# direction_1
+df_train_d1 <-  
   df_temp_precip %>% 
   rename(y = "direction_1") %>%
   filter(year < 2020) %>%
   drop_na(y, air_temp, precipitation)
 
-df_test <- 
+df_test_d1 <- 
   df_temp_precip %>% 
   rename(y = "direction_1") %>%
   filter(year >= 2020) %>%
   drop_na(y, air_temp, precipitation)
 
-# ATM, not filter outliers out beforehand
-fit <- prophet(
-  df = df_train,
+df_train_Arnulf_d1 <- df_train_d1 %>% filter(station == "Arnulf")
+df_train_Erhardt_d1 <- df_train_d1 %>% filter(station == "Erhardt")
+df_train_Kreuther_d1 <- df_train_d1 %>% filter(station == "Kreuther")
+df_train_Olympia_d1 <- df_train_d1 %>% filter(station == "Olympia")
+df_train_Margareten_d1 <- df_train_d1 %>% filter(station == "Margareten")
+df_train_Hirsch_d1 <- df_train_d1 %>% filter(station == "Hirsch")
+
+df_test_Arnulf_d1 <- df_test_d1 %>% filter(station == "Arnulf")
+df_test_Erhardt_d1 <- df_test_d1 %>% filter(station == "Erhardt")
+df_test_Kreuther_d1 <- df_test_d1 %>% filter(station == "Kreuther")
+df_test_Olympia_d1 <- df_test_d1 %>% filter(station == "Olympia")
+df_test_Margareten_d1 <- df_test_d1 %>% filter(station == "Margareten")
+df_test_Hirsch_d1 <- df_test_d1 %>% filter(station == "Hirsch")
+
+# direction_2
+df_train_d2 <- 
+  df_temp_precip %>% 
+  rename(y = "direction_2") %>%
+  filter(year < 2020) %>%
+  drop_na(y, air_temp, precipitation)
+
+df_test_d2 <- 
+  df_temp_precip %>% 
+  rename(y = "direction_2") %>%
+  filter(year >= 2020) %>%
+  drop_na(y, air_temp, precipitation)
+
+df_train_Arnulf_d2 <- df_train_d2 %>% filter(station == "Arnulf")
+df_train_Erhardt_d2 <- df_train_d2 %>% filter(station == "Erhardt")
+df_train_Kreuther_d2 <- df_train_d2 %>% filter(station == "Kreuther")
+df_train_Olympia_d2 <- df_train_d2 %>% filter(station == "Olympia")
+df_train_Margareten_d2 <- df_train_d2 %>% filter(station == "Margareten")
+df_train_Hirsch_d2 <- df_train_d2 %>% filter(station == "Hirsch")
+
+df_test_Arnulf_d2 <- df_test_d2 %>% filter(station == "Arnulf")
+df_test_Erhardt_d2 <- df_test_d2 %>% filter(station == "Erhardt")
+df_test_Kreuther_d2 <- df_test_d2 %>% filter(station == "Kreuther")
+df_test_Olympia_d2 <- df_test_d2 %>% filter(station == "Olympia")
+df_test_Margareten_d2 <- df_test_d2 %>% filter(station == "Margareten")
+df_test_Hirsch_d2 <- df_test_d2 %>% filter(station == "Hirsch")
+
+
+#------------------------------------#
+#----Fit prophet model per station----
+#------------------------------------#
+# Note: At the moment, I do not filter outliers out in advance
+
+# direction_1
+# Arnulf
+fit_Arnulf_d1 <- prophet(
   growth = "linear",
   holidays = holiday,
   seasonality.mode = "additive",
@@ -56,28 +87,20 @@ fit <- prophet(
   holidays.prior.scale = 5,
   changepoint.prior.scale = 0.5
 )
-# 1:41
+fit_Arnulf_d1 <- add_regressor(fit_Arnulf_d1, "air_temp", mode = "additive")
+fit_Arnulf_d1 <- add_regressor(fit_Arnulf_d1, "precipitation", mode = "additive")
+Sys.time()
+fit_Arnulf_d1 <- fit.prophet(fit_Arnulf_d1, df_train_Arnulf_d1)
+Sys.time() # took 3 mins
 
+future_Arnulf_d1 <- make_future_dataframe(fit_Arnulf_d1, periods = 1000, freq = 60*15)
+future_Arnulf_d1 <- extract_yearmonthdayhour(future_Arnulf_d1)
+future_Arnulf_d1_weather <- merge(future_Arnulf_d1, temp_precip, by = c("year", "month","day", "hour"))
+future_Arnulf_d1_weather <- future_Arnulf_d1_weather %>% drop_na(air_temp, precipitation) %>% select(-c(quality_level, humidity))
 
-
-prophet <- prophet(
-  #mcmc_samples=300,
-  changepoint_prior_scale=0.5,
-  seasonality_mode='multiplicative',  
-  holidays_prior_scale=0.25, 
-  holidays = holiday
-)
-
-prophet <- add_regressor(prophet, "air_temp", mode='multiplicative')
-prophet <- add_regressor(prophet, "precipitation", mode='multiplicative')
-prophet <- fit.prophet(prophet, df_train_arnulf)
-
-future = make_future_dataframe(prophet, periods= 1000, freq= 60*15)
-
-future <- extract_yearmonthdayhour(future)
-future_weather <- merge(future, temp_precip, by = c("year", "month","day", "hour"))
-future_weather <- future_weather %>% drop_na(air_temp, precipitation)
-
+# 2:06
+forecast_Arnulf_d1 <- predict(fit_Arnulf_d1, future_Arnulf_d1_weather)
+# 
 forecast <-  predict(prophet, future_weather)
 
 plot(prophet, forecast)
