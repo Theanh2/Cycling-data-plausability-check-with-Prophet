@@ -1,9 +1,11 @@
-#set Working directory----
+#----------------------------#
+#----Set working directory----
 #----------------------------#
 setwd("/Users/theanh/Library/Mobile Documents/com~apple~CloudDocs/Stats/Master/Consulting")
-#----------------------------#
-#Packages ----
-#----------------------------#
+
+#--------------------#
+#----Load Packages----
+#--------------------#
 library(dplyr)
 library(tidyr)
 library(lubridate)
@@ -12,9 +14,10 @@ library(mgcv)
 library(ggplot2)
 library(prophet)
 library(prophetuneR)
-#----------------------------#
-#Utility functions-----
-#----------------------------#
+
+#------------------------#
+#----Utility functions----
+#------------------------#
 # Extract hour from the time string
 extract_hour = function(x) {
   return(format(strptime(x, format = "%H:%M:%S"), format = "%H"))
@@ -35,7 +38,6 @@ extract_year = function(x) {
 extract_DateTime = function(df) {
   
   df$date = as.character(df$date)
-  
   df$hour = as.integer(substr(df$date, 9, 10))
   df$year = as.integer(substr(df$date, 1, 4))
   df$month = as.integer(substr(df$date, 5, 6))
@@ -47,7 +49,6 @@ extract_DateTime = function(df) {
 extract_yearmonthdayhour = function(df) {
   
   temp = df$ds
-  
   df$hour = as.integer(substr(temp, 12, 13))
   df$year = as.integer(substr(temp, 1, 4))
   df$month = as.integer(substr(temp, 6, 7))
@@ -57,9 +58,9 @@ extract_yearmonthdayhour = function(df) {
   
 }
 
-#----------------------------#
-#Load and Reformat cycling data and weather data#----
-#----------------------------#
+#---------------------------------------------#
+#----Load and Reformat cycling/weather data----
+#---------------------------------------------#
 cycling_url = c(
   "https://opendata.muenchen.de/dataset/022a11ff-4dcb-4f03-b7dd-a6c94a094587/resource/66be7619-a672-4382-bf88-e3688c5abc2b/download/rad_2008_15min_06_06_23_r.csv",
   "https://opendata.muenchen.de/dataset/022a11ff-4dcb-4f03-b7dd-a6c94a094587/resource/3ef8aad9-a6b0-4c97-a6b7-8c3a63226b37/download/rad_2009_15min_06_06_23_r.csv",
@@ -105,20 +106,34 @@ for (i in seq_len(length(cycling_ls))) {
 
 df_cycling = do.call(rbind, cycling_ls)
 df_weather = do.call(rbind, weather_ls)
-#----------------------------#
-##reformat df_cycling
-#mutate date and uhrzeit_start into YYYY-MM-DD HH:MM:SS for prophet
+
+#--------------------------#
+#----Reformat df_cycling----
+#--------------------------#
+# mutate date and uhrzeit_start into YYYY-MM-DD HH:MM:SS for prophet
 df_cycling <- df_cycling %>% mutate(ds = as.character(paste(datum, uhrzeit_start)))
 
-#Extract date
+# Extract date
 df_cycling$hour <- as.integer(extract_hour(df_cycling$uhrzeit_start))
-df_cycling$year = as.integer(format(df_cycling$datum, "%Y"))
-df_cycling$month = as.integer(format(df_cycling$datum, "%m"))
-df_cycling$weekday = weekdays(df_cycling$datum)
-df_cycling$day = as.integer(format(df_cycling$datum, "%d"))
+df_cycling$year <- as.integer(format(df_cycling$datum, "%Y"))
+df_cycling$month <- as.integer(format(df_cycling$datum, "%m"))
+df_cycling$weekday <- weekdays(df_cycling$datum)
+df_cycling$day <- as.integer(format(df_cycling$datum, "%d"))
 
-names(df_cycling) <- c(datum = "date", uhrzeit_start ="time_start", uhrzeit_ende = "time_end",zaehlstelle = "station",richtung_1 = "direction_1",richtung_2 = "direction_2",
-                       gesamt= "total",kommentar = "comment",ds ="ds", hour = "hour", year = "year", month = "month", weekday = "weekday", day = "day" 
+names(df_cycling) <- c(datum = "date",
+                       uhrzeit_start ="time_start",
+                       uhrzeit_ende = "time_end",
+                       zaehlstelle = "station",
+                       richtung_1 = "direction_1",
+                       richtung_2 = "direction_2",
+                       gesamt= "total",
+                       kommentar = "comment",
+                       ds ="ds",
+                       hour = "hour", 
+                       year = "year",
+                       month = "month",
+                       weekday = "weekday",
+                       day = "day" 
 )
 
 df_cycling$comment[which(df_cycling$comment == "Zählstelle noch nicht in Betrieb")] <- "station not yet in operation"
@@ -127,16 +142,18 @@ df_cycling$comment[which(df_cycling$comment == "Baustelle")] <- "construction"
 df_cycling$comment[which(df_cycling$comment == "Austausch Sensor")] <- "replacing sensor"
 df_cycling$comment[which(df_cycling$comment == "Ausfall nach Beschädigung")] <- "failure after damage"
 
-#Add hour_weekday
-df_cycling$weekday = factor(df_cycling$weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+# Add hour_weekday
+df_cycling$weekday <- factor(df_cycling$weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
 df_cycling <- df_cycling %>% mutate(hour_weekday = (as.integer((weekday)) - 1)*24 + hour)
 
-#Remove rows where direction_1 or direction_2 == -1
-idx_remove = which(df_cycling$direction_1 == -1 | df_cycling$direction_2 == -1)
-df_cycling = df_cycling[-idx_remove,]
-#----------------------------#
-##reformat df_weather
-df_weather$year = as.integer(format(df_weather$datum, "%Y"))
+# Remove rows where direction_1 or direction_2 == -1
+idx_remove <- which(df_cycling$direction_1 == -1 | df_cycling$direction_2 == -1)
+df_cycling <- df_cycling[-idx_remove,]
+
+#----------------------------------#
+#----Reformat df_weather (daily)----
+#----------------------------------#
+df_weather$year <- as.integer(format(df_weather$datum, "%Y"))
 names(df_weather) <- c("date", "station", "time_start", "time_end", "direction_1", "direction_2", "total", "min.temp", "max.temp", "precipitation", "cloud_cover", "sun_hours", "comment", year = "year")
 
 df_weather$comment[which(df_weather$comment == "Zählstelle noch nicht in Betrieb")] <- "Station not yet in operation"
@@ -145,28 +162,30 @@ df_weather$comment[which(df_weather$comment == "Ausfall")] <- "failure"
 df_weather$comment[which(df_weather$comment == "Baustelle")] <- "construction"
 df_weather$comment[which(df_weather$comment == "Austausch Sensor")] <- "replacing sensor"
 df_weather$comment[which(df_weather$comment == "Ausfall nach Beschädigung")] <- "failure after damage"
-#----------------------------#
-#load holiday set----
-#----------------------------#
-school_holidays = read.table(
-  "school_holidays.csv",
+
+#-----------------------#
+#----Load holiday set----
+#-----------------------#
+school_holidays <- read.table(
+  "data_folder/holidays_data/school_holidays.csv",
   sep = ";", header = TRUE) 
 
-public_holidays = read.table(
-  "public_holidays.csv",
+public_holidays <- read.table(
+  "data_folder/holidays_data/public_holidays.csv",
   sep = ";", header = TRUE)
 
 school_holidays$date <- as.Date(school_holidays$date, format = "%d.%m.%y")
 public_holidays$date <- as.Date(public_holidays$date, format = "%Y-%m-%d")
-colnames(public_holidays)[1] = "name_holiday"
+colnames(public_holidays)[1] <- "name_holiday"
 public_holidays <- public_holidays %>% select("date", "public_holiday")
+public_holidays <- public_holidays %>% mutate(public_holiday = ifelse(public_holiday == 2, 1, public_holiday)) # Make holiday binary
 
-#from prophet package
-holiday <-  generated_holidays %>% filter(country == "DE")
+# From prophet package
+holiday <- generated_holidays %>% filter(country == "DE")
 
-#----------------------------#
-#Load and Reformat weather data from DWD----
-#----------------------------#
+#---------------------------------------------------#
+# Load and Reformat weather data from DWD (hourly----
+#---------------------------------------------------#
 # 1. Air temperature
 # Description: See Metadaten_Parameter_tu_stunde_03379.html in the folder / https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/hourly/air_temperature/DESCRIPTION_obsgermany_climate_hourly_air_temperature_en.pdf
 # Station_id: 03379; München Stadt
@@ -174,8 +193,8 @@ holiday <-  generated_holidays %>% filter(country == "DE")
 # QN_9: quality level
 # TT_TU: air temperature
 # RF_TU relative humidity
-air_temp = read.table(
-  "weather_data/air_temperature/produkt_tu_stunde_19970701_20221231_03379.txt",
+air_temp <- read.table(
+  "data_folder/weather_data/air_temperature/produkt_tu_stunde_19970701_20221231_03379.txt",
   sep = ";", header = TRUE)
 
 # 2. Precipitation
@@ -186,8 +205,8 @@ air_temp = read.table(
 # R1: precipitation
 # RS_IND: Precipitation Indicator (yes or no)
 # WRTR: ?
-precipitation = read.table(
-  "weather_data/precipitation/produkt_rr_stunde_19970707_20221231_03379.txt",
+precipitation <- read.table(
+  "data_folder/weather_data/precipitation/produkt_rr_stunde_19970707_20221231_03379.txt",
   sep = ";", header = TRUE)
 
 # 3. Sun
@@ -197,8 +216,8 @@ precipitation = read.table(
 # Mess_datum: reference date
 # QN_7: quality level
 # SD_SO: Sunshine duration
-sun = read.table(
-  "weather_data/sun/produkt_sd_stunde_19850101_20221231_03379.txt",
+sun <- read.table(
+  "data_folder/weather_data/sun/produkt_sd_stunde_19850101_20221231_03379.txt",
   sep = ";", header = TRUE)
 
 # 4. Wind
@@ -208,8 +227,8 @@ sun = read.table(
 # QN_3: quality level
 # F: wind speed
 # D: wind direction
-wind = read.table(
-  "weather_data/wind/produkt_ff_stunde_19850101_20221231_03379.txt",
+wind <- read.table(
+  "data_folder/weather_data/wind/produkt_ff_stunde_19850101_20221231_03379.txt",
   sep = ";", header = TRUE
 )
 
@@ -218,54 +237,63 @@ colnames(precipitation) <- c("station_id", "date", "quality_level", "precipitati
 colnames(sun) <- c("station_id", "date", "quality_level", "sun_time", "eor")
 colnames(wind) <- c("station_id", "date", "quality_level", "wind_speed","wind_direction", "eor")
 
-air_temp = extract_DateTime(air_temp)
-precipitation = extract_DateTime(precipitation)
-sun = extract_DateTime(sun)
-wind = extract_DateTime(wind)
+air_temp <- extract_DateTime(air_temp)
+precipitation <- extract_DateTime(precipitation)
+sun <- extract_DateTime(sun)
+wind <- extract_DateTime(wind)
 
 # Filter years from 2008 to 2022
-year_filter = unique(df_cycling$year)
-
-air_temp = air_temp %>% filter(year %in% year_filter)
-precipitation = precipitation %>% filter(year %in% year_filter)
-sun = sun %>% filter(year %in% year_filter)
-wind = wind %>% filter(year %in% year_filter)
+# to filter out relevant years from hourly recorded weather data
+year_filter <- unique(df_cycling$year)
+air_temp <- air_temp %>% filter(year %in% year_filter)
+precipitation <- precipitation %>% filter(year %in% year_filter)
+sun <- sun %>% filter(year %in% year_filter)
+wind <- wind %>% filter(year %in% year_filter)
 
 # Remove non-informative columns
 # quality_level, air_temp, humidity, precipitation, sun_time, wind_speed, hour, year, month, day will be used for analysis
-air_temp = air_temp %>% select(!c("station_id", "date", "eor"))
-precipitation = precipitation %>% select(c("precipitation", "hour", "year", "month", "day"))
-sun = sun %>% select(!c("station_id", "date", "quality_level", "eor"))
-wind = wind %>% select(c("wind_speed", "hour", "year", "month", "day"))
+air_temp <- air_temp %>% select(!c("station_id", "date", "eor"))
+precipitation <- precipitation %>% select(c("precipitation", "hour", "year", "month", "day"))
+sun <- sun %>% select(!c("station_id", "date", "quality_level", "eor"))
+wind <- wind %>% select(c("wind_speed", "hour", "year", "month", "day"))
 
-#NA -999 (placeholder for NA in original set)
+# NA -999 (placeholder for NA in original set)
 precipitation <- precipitation %>% mutate(precipitation = replace(precipitation, which(precipitation == -999), NA))
 air_temp <- air_temp %>% mutate(air_temp = replace(air_temp, which(air_temp == -999), NA))
 sun <- sun %>% mutate(sun_time = replace(sun_time, which(sun_time == -999), NA))
 wind <- wind %>% mutate(wind_speed = replace(wind_speed, which(wind_speed == -999), NA))
 
-#15 minute data 
-precipitation$precipitation <-precipitation$precipitation*0.25
+# 15 minute data 
+precipitation$precipitation <- precipitation$precipitation * 0.25
 
-#----------------------------#
-#Merging-----
-#----------------------------#
-# Merge all the weather data so that there are no NA values #nrew 97255
-weather_all = merge(air_temp, precipitation, by = c("year", "month", "day", "hour")) %>%
+#--------------#
+#----Merging----
+#--------------# 
+# Merge all the weather data so that there are no NA values
+weather_all <- # nrow == 97,255
+  merge(air_temp, precipitation, by = c("year", "month", "day", "hour")) %>%
   merge(., wind, by = c("year", "month", "day", "hour")) %>%
   merge(., sun, by = c("year", "month", "day", "hour"))
 
-# Merge precipitation and air temp nrow 131405
-temp_precip = merge(air_temp, precipitation, by = c("year", "month", "day", "hour"))
+# Merge precipitation and air temp; # nrow == 131,405
+temp_precip <- merge(air_temp, precipitation, by = c("year", "month", "day", "hour"))
 
-df <- merge(df_cycling, school_holidays, by='date', all = TRUE)
-df <- merge(df, public_holidays, by='date', all = TRUE)
+# nrow == 2,846,096
+df <- merge(df_cycling, school_holidays, by = 'date', all = TRUE)
+df <- merge(df, public_holidays, by = 'date', all = TRUE)
 df$school_holiday[is.na(df$school_holiday)] <- 0
 df$public_holiday[is.na(df$public_holiday)] <- 0
 
-#FINAL DATA 
-df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"))
-df_precip <-merge(df, precipitation, by = c("year", "month", "hour", "day"))
-df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"))
+# This is a summary of when direction_1 / direction_2 have NA values for each station
+df %>%
+  group_by(station) %>%
+  filter(!is.na(comment)) %>%
+  distinct(year, month, comment) %>%
+  print(n = Inf)
 
+# FINAL DATA 
+# I added all.x = TRUE in order to keep all dates 
+df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) 
+df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) 
+df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) 
 
