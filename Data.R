@@ -295,3 +295,5 @@ df %>%
 df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
 df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
 df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
+
+

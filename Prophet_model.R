@@ -1,7 +1,18 @@
-#----------------------------#
-#Prophet: test / train split each station ----
-#----------------------------#
+#--------------------#
+#----Load Packages----
+#--------------------#
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(stringr)
+library(mgcv)
+library(ggplot2)
+library(prophet)
+library(prophetuneR)
 
+#-----------------------------------------------#
+#----Prophet: test / train split each station----
+#-----------------------------------------------#
 df_d1 <- df %>% select(-direction_2) %>% rename(y = "direction_1")
 df_Arnulf_d1 <- df_d1 %>% filter(station == "Arnulf")
 df_Erhardt_d1 <- df_d1 %>% filter(station == "Erhardt")
@@ -11,7 +22,6 @@ df_Margareten_d1 <- df_d1 %>% filter(station == "Margareten")
 df_Hirsch_d1 <- df_d1 %>% filter(station == "Hirsch")
 
 df_d2 <- df %>% select(-direction_1)  %>% rename(y = "direction_2")
-
 df_Arnulf_d2 <- df_d2 %>% filter(station == "Arnulf")
 df_Erhardt_d2 <- df_d2 %>% filter(station == "Erhardt")
 df_Kreuther_d2 <- df_d2 %>% filter(station == "Kreuther")
@@ -19,16 +29,39 @@ df_Olympia_d2 <- df_d2 %>% filter(station == "Olympia")
 df_Margareten_d2 <- df_d2 %>% filter(station == "Margareten")
 df_Hirsch_d2 <- df_d2 %>% filter(station == "Hirsch")
 
-#Fit prophet model across stations
-df_train <- df %>% filter(year < 2017)
-df_test <- df %>% filter(year > 2016)
-df_train <- df_train %>% select(-direction_2)  %>% rename(y = "direction_1")
-df_test <- df_test %>% select(-direction_2)  %>% rename(y = "direction_1")
+# Note: 
+# 1. Train set: year 2008 ~ 2019 (about 80%) / Test set: year 2020 ~ 2022 (about 20%)
+# 2. As discussed, let's consider only air_temperature and precipitation for weather information
 
-df_train <- merge(df_train, temp_precip, by = c("year", "month", "hour", "day"))
-df_train <- df_train %>% drop_na(y, air_temp, precipitation)
+# Fit prophet model across stations
+df_train <- 
+  df_temp_precip %>% 
+  rename(y = "direction_1") %>%
+  filter(year < 2020) %>%
+  drop_na(y, air_temp, precipitation)
 
-prophet <- prophet(#mcmc_samples=300,
+df_test <- 
+  df_temp_precip %>% 
+  rename(y = "direction_1") %>%
+  filter(year >= 2020) %>%
+  drop_na(y, air_temp, precipitation)
+
+# ATM, not filter outliers out beforehand
+fit <- prophet(
+  df = df_train,
+  growth = "linear",
+  holidays = holiday,
+  seasonality.mode = "additive",
+  seasonality.prior.scale = 10,
+  holidays.prior.scale = 5,
+  changepoint.prior.scale = 0.5
+)
+# 1:41
+
+
+
+prophet <- prophet(
+  #mcmc_samples=300,
   changepoint_prior_scale=0.5,
   seasonality_mode='multiplicative',  
   holidays_prior_scale=0.25, 
