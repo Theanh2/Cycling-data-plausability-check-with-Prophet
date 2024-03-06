@@ -133,8 +133,7 @@ names(df_cycling) <- c(datum = "date",
                        year = "year",
                        month = "month",
                        weekday = "weekday",
-                       day = "day" 
-)
+                       day = "day")
 
 df_cycling$comment[which(df_cycling$comment == "Zählstelle noch nicht in Betrieb")] <- "station not yet in operation"
 df_cycling$comment[which(df_cycling$comment == "Radweg vereist / nach Schneefall nicht geräumt / keine Messung möglich")] <- "bikelane icy / not cleared after snowfall / no measure possible"
@@ -293,7 +292,7 @@ df %>%
 
 # FINAL DATA 
 # I added all.x = TRUE in order to keep all dates 
-df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) 
-df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) 
-df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) 
+df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
+df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
+df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
 
