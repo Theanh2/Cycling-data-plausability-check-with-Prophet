@@ -655,4 +655,3 @@ df_cycling %>%
   theme_light() +
   geom_vline(xintercept = seq(0, 167, by = 24), linetype = "dashed", color = "red") +
   scale_x_continuous(breaks = seq(0, 167, by = 24), expand = c(0, 0))
-
