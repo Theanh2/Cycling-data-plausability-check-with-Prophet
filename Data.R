@@ -76,29 +76,14 @@ df_cycling %>% distinct(comment)
 # Note that Monday(dayofweek == 0) through Sunday(dayofweek == 6)
 df_cycling %>% distinct(dayofweek)
 
+# IMPORTANT
 # Modify some erroneous values e.g. "2020-04-09 13:59:00" -> "2020-04-09 14:00:00"
-
 # Kreuther
 df_cycling <- df_cycling %>%
   mutate(
     ds = if_else(station == "Kreuther" & ds == "2020-04-09 13:59:00", "2020-04-09 14:00:00", ds),
     hour = if_else(station == "Kreuther" & ds == "2020-04-09 14:00:00" & hour == 13, 14, hour),
     hour_weekday = if_else(station == "Kreuther" & ds == "2020-04-09 14:00:00" & hour_weekday == 85, 86, hour_weekday)
-  )
-
-df_cycling <- df_cycling %>%
-  mutate(
-    ds = if_else(station == "Kreuther" & ds == "2020-04-09 14:14:00", "2020-04-09 14:15:00", ds)
-  )
-
-df_cycling <- df_cycling %>%
-  mutate(
-    ds = if_else(station == "Kreuther" & ds == "2020-04-09 14:29:00", "2020-04-09 14:30:00", ds)
-  )
-
-df_cycling <- df_cycling %>%
-  mutate(
-    ds = if_else(station == "Kreuther" & ds == "2020-04-09 14:44:00", "2020-04-09 14:45:00", ds)
   )
 
 df_cycling <- df_cycling %>%
@@ -137,7 +122,7 @@ insert_df_Hirsch_1 <- df_cycling %>%
 insert_df_Hirsch_2 <- df_cycling %>% 
   filter(station == "Hirsch", date == "2019-05-29", hour == 7) %>% 
   slice(1) %>% 
-  mutate(ds = "2019-05-23 07:00:00",
+  mutate(ds = "2019-05-29 07:00:00",
          direction_1 = NA,
          direction_2 = NA)
 
@@ -147,35 +132,35 @@ df_cycling <- bind_rows(df_cycling, insert_df_Hirsch_1, insert_df_Hirsch_2)
 insert_df_Erhardt_1 <- df_cycling %>% 
   filter(station == "Erhardt", date == "2017-11-28", hour == 13) %>% 
   slice(1) %>% 
-  mutate(ds = "2017-11-22 13:00:00",
+  mutate(ds = "2017-11-28 13:00:00",
          direction_1 = NA,
          direction_2 = NA)
 
 insert_df_Erhardt_2 <- df_cycling %>% 
   filter(station == "Erhardt", date == "2017-11-28", hour == 13) %>% 
   slice(1) %>% 
-  mutate(ds = "2017-11-22 13:15:00",
+  mutate(ds = "2017-11-28 13:15:00",
          direction_1 = NA,
          direction_2 = NA)
 
 insert_df_Erhardt_3 <- df_cycling %>% 
   filter(station == "Erhardt", date == "2017-11-28", hour == 13) %>% 
   slice(1) %>% 
-  mutate(ds = "2017-11-22 13:30:00",
+  mutate(ds = "2017-11-28 13:30:00",
          direction_1 = NA,
          direction_2 = NA)
 
 insert_df_Erhardt_4 <- df_cycling %>% 
   filter(station == "Erhardt", date == "2017-11-28", hour == 15) %>% 
   slice(1) %>% 
-  mutate(ds = "2017-11-22 15:00:00",
+  mutate(ds = "2017-11-28 15:00:00",
          direction_1 = NA,
          direction_2 = NA)
 
 insert_df_Erhardt_5 <- df_cycling %>% 
   filter(station == "Erhardt", date == "2017-11-28", hour == 15) %>% 
   slice(1) %>% 
-  mutate(ds = "2017-11-22 15:15:00",
+  mutate(ds = "2017-11-28 15:15:00",
          direction_1 = NA,
          direction_2 = NA)
 
@@ -185,10 +170,8 @@ df_cycling <- bind_rows(df_cycling,
                         insert_df_Erhardt_3,
                         insert_df_Erhardt_4,
                         insert_df_Erhardt_5)
+# Now, nrow == 2846100, evenly spaced in time
 
-# Ascending order of ds
-  
-  
 
 #---------------------------------------------#
 #----Load and Reformat cycling/weather data----
