@@ -60,7 +60,6 @@ extract_DateTime = function(df) {
 # }
 
 
-
 # Note that you don't have to the following process from scratch to load cycling data.
 # Instead, just import it from `data_folder`
 getwd() # adjust the path 
@@ -171,6 +170,8 @@ df_cycling <- bind_rows(df_cycling,
                         insert_df_Erhardt_4,
                         insert_df_Erhardt_5)
 # Now, nrow == 2846100, evenly spaced in time
+df_cycling
+
 
 
 #---------------------------------------------#
@@ -366,7 +367,7 @@ wind <- wind %>% filter(year %in% year_filter)
 
 # Remove non-informative columns
 # quality_level, air_temp, humidity, precipitation, sun_time, wind_speed, hour, year, month, day will be used for analysis
-air_temp <- air_temp %>% select(!c("station_id", "date", "eor"))
+air_temp <- air_temp %>% select(!c("station_id", "date", "eor", "quality_level", "humidity"))
 precipitation <- precipitation %>% select(c("precipitation", "hour", "year", "month", "day"))
 sun <- sun %>% select(!c("station_id", "date", "quality_level", "eor"))
 wind <- wind %>% select(c("wind_speed", "hour", "year", "month", "day"))
@@ -389,10 +390,10 @@ weather_all <- # nrow == 97,255
   merge(., wind, by = c("year", "month", "day", "hour")) %>%
   merge(., sun, by = c("year", "month", "day", "hour"))
 
-# Merge precipitation and air temp; # nrow == 131,405
-temp_precip <- merge(air_temp, precipitation, by = c("year", "month", "day", "hour"))
+# Merge precipitation and air temp; # nrow == 131,493 (keep all intant)
+temp_precip <- merge(air_temp, precipitation, by = c("year", "month", "day", "hour"), all.x = TRUE)
 
-# nrow == 2,846,096
+# nrow == 2,846,100
 df <- merge(df_cycling, school_holidays, by = 'date', all = TRUE)
 df <- merge(df, public_holidays, by = 'date', all = TRUE)
 df$school_holiday[is.na(df$school_holiday)] <- 0
@@ -405,11 +406,28 @@ df %>%
   distinct(year, month, comment) %>%
   print(n = Inf)
 
+unique(df$station)
+# Create time column for mvgam package
+df %>% 
+  mutate(time_Arnulf = 0,
+         time_Kreuther = 0,
+         time_Olympia = 0,
+         time_Hirsch = 0,
+         time_Margareten = 0,
+         time_Erhardt = 0) -> df
+
+df[df$station == "Arnulf",]$time_Arnulf <- seq(1, nrow(df[df$station == "Arnulf",])) 
+df[df$station == "Kreuther",]$time_Kreuther <- seq(1, nrow(df[df$station == "Kreuther",])) 
+df[df$station == "Olympia",]$time_Olympia <- seq(1, nrow(df[df$station == "Olympia",]))
+df[df$station == "Hirsch",]$time_Hirsch <- seq(1, nrow(df[df$station == "Hirsch",]))
+df[df$station == "Margareten",]$time_Margareten <- seq(1, nrow(df[df$station == "Margareten",]))
+df[df$station == "Erhardt",]$time_Erhardt <- seq(1, nrow(df[df$station == "Erhardt",]))
+
 # FINAL DATA 
 # I added all.x = TRUE in order to keep all dates 
-df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
-df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
-df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,096
+df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
+df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
+df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
 
 
 #----------------------------------------------------------#
@@ -419,7 +437,7 @@ df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"),
 # 1. Train set: year 2008 ~ 2018 (about 70%) / Test set: year 2019 ~ 2022 (about 30%)
 # 2. As discussed, let's consider only air_temperature and precipitation for weather information
 
-summary(df_temp_precip) # needed to be uploaded
+summary(df_temp_precip)
 
 # direction_1
 df_train_d1 <-  
