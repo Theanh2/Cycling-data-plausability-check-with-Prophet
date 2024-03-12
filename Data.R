@@ -488,3 +488,131 @@ df_test_Kreuther_d2 <- df_test_d2 %>% filter(station == "Kreuther")
 df_test_Olympia_d2 <- df_test_d2 %>% filter(station == "Olympia")
 df_test_Margareten_d2 <- df_test_d2 %>% filter(station == "Margareten")
 df_test_Hirsch_d2 <- df_test_d2 %>% filter(station == "Hirsch")
+
+
+# Rearrange in ascending order of time and remove irrelevant columns
+# Arnulf
+df_train_Arnulf_d1 <- df_train_Arnulf_d1 %>% 
+  arrange(time_Arnulf) %>% 
+  select(!c(time_Kreuther, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Arnulf")
+
+df_test_Arnulf_d1 <- df_test_Arnulf_d1 %>% 
+  arrange(time_Arnulf) %>% 
+  select(!c(time_Kreuther, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Arnulf")
+
+df_train_Arnulf_d2 <- df_train_Arnulf_d2 %>% 
+  arrange(time_Arnulf) %>% 
+  select(!c(time_Kreuther, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Arnulf")
+
+df_test_Arnulf_d2 <- df_test_Arnulf_d2 %>% 
+  arrange(time_Arnulf) %>% 
+  select(!c(time_Kreuther, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Arnulf")
+
+# Kreuther
+df_train_Kreuther_d1 <- df_train_Kreuther_d1 %>% 
+  arrange(time_Kreuther) %>% 
+  select(!c(time_Arnulf, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Kreuther")
+
+df_test_Kreuther_d1 <- df_test_Kreuther_d1 %>% 
+  arrange(time_Kreuther) %>% 
+  select(!c(time_Arnulf, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Kreuther")
+
+df_train_Kreuther_d2 <- df_train_Kreuther_d2 %>% 
+  arrange(time_Kreuther) %>% 
+  select(!c(time_Arnulf, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Kreuther")
+
+df_test_Kreuther_d2 <- df_test_Kreuther_d2 %>% 
+  arrange(time_Kreuther) %>% 
+  select(!c(time_Arnulf, time_Olympia, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Kreuther")
+
+# Olympia
+df_train_Olympia_d1 <- df_train_Olympia_d1 %>% 
+  arrange(time_Olympia) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Olympia")
+
+df_test_Olympia_d1 <- df_test_Olympia_d1 %>% 
+  arrange(time_Olympia) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Olympia")
+
+df_train_Olympia_d2 <- df_train_Olympia_d2 %>% 
+  arrange(time_Olympia) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Olympia")
+
+df_test_Olympia_d2 <- df_test_Olympia_d2 %>% 
+  arrange(time_Olympia) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Hirsch, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Olympia")
+
+# Hirsch
+df_train_Hirsch_d1 <- df_train_Hirsch_d1 %>% 
+  arrange(time_Hirsch) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Hirsch")
+
+df_test_Hirsch_d1 <- df_test_Hirsch_d1 %>% 
+  arrange(time_Hirsch) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Hirsch")
+
+df_train_Hirsch_d2 <- df_train_Hirsch_d2 %>% 
+  arrange(time_Hirsch) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Hirsch")
+
+df_test_Hirsch_d2 <- df_test_Hirsch_d2 %>% 
+  arrange(time_Hirsch) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Margareten, time_Erhardt)) %>%
+  rename(time = "time_Hirsch")
+
+# Margareten
+df_train_Margareten_d1 <- df_train_Margareten_d1 %>% 
+  arrange(time_Margareten) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Erhardt)) %>%
+  rename(time = "time_Margareten")
+
+df_test_Margareten_d1 <- df_test_Margareten_d1 %>% 
+  arrange(time_Margareten) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Erhardt)) %>%
+  rename(time = "time_Margareten")
+
+df_train_Margareten_d2 <- df_train_Margareten_d2 %>% 
+  arrange(time_Margareten) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Erhardt)) %>%
+  rename(time = "time_Margareten")
+
+df_test_Margareten_d2 <- df_test_Margareten_d2 %>% 
+  arrange(time_Margareten) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Erhardt)) %>%
+  rename(time = "time_Margareten")
+
+# Erhardt
+df_train_Erhardt_d1 <- df_train_Erhardt_d1 %>% 
+  arrange(time_Erhardt) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Margareten)) %>%
+  rename(time = "time_Erhardt")
+
+df_test_Erhardt_d1 <- df_test_Erhardt_d1 %>% 
+  arrange(time_Erhardt) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Margareten)) %>%
+  rename(time = "time_Erhardt")
+
+df_train_Erhardt_d2 <- df_train_Erhardt_d2 %>% 
+  arrange(time_Erhardt) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Margareten)) %>%
+  rename(time = "time_Erhardt")
+
+df_test_Erhardt_d2 <- df_test_Erhardt_d2 %>% 
+  arrange(time_Erhardt) %>% 
+  select(!c(time_Arnulf, time_Kreuther, time_Olympia, time_Hirsch, time_Margareten)) %>%
+  rename(time = "time_Erhardt")
