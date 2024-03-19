@@ -501,7 +501,7 @@ df_train_d1_hourly <-
   rename(y = "direction_1") %>%
   filter(year < 2019)
 
-df_train_Arnulf_d1 <- df_train_d1 %>% filter(station == "Arnulf")
+df_train_Arnulf_d1_hourly <- df_train_d1_hourly %>% filter(station == "Arnulf")
 
 # Rearrange in ascending order of time and remove irrelevant columns
 # Arnulf
