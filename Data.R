@@ -14,7 +14,6 @@ library(stringr)
 library(mgcv)
 library(ggplot2)
 library(prophet)
-library(prophetuneR)
 
 # #------------------------#
 # #----Utility functions----
@@ -65,7 +64,7 @@ extract_DateTime = function(df) {
 # Instead, just import it from `data_folder`
 getwd() # adjust the path 
 
-df_cycling <- data.table::fread("/Users/juntaekwon/work_r/Consulting Project/data_folder/df_cycling.csv") 
+df_cycling <- data.table::fread("data_folder/df_cycling.csv") 
 idx <- sapply(df_cycling$ds, function(x) ifelse(nchar(x) == 19, FALSE, TRUE), USE.NAMES = FALSE) 
 df_cycling[idx,]$ds <- paste(df_cycling[idx,]$ds, ":00", sep = "") # to unify the format of ds column
 
@@ -432,6 +431,10 @@ df %>%
 # df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
 # df_precip <- merge(df, precipitation, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
 df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
+df_temp_precip <- df_temp_precip %>% mutate(month_year = (year-2008)*12 + (month-6))
+#nrow(df_temp_precip) -> 2846100/4 -> 711525
+df_temp_precip_hourly <- df_temp_precip%>% group_by(year, month, day, hour,station, date, hour_weekday, holiday, ind, month_year) %>% 
+  summarise(direction_1 = sum(direction_1, na.rm = TRUE), direction_2 = sum(direction_2, na.rm = TRUE), precipitation = mean(precipitation), air_temp = mean(air_temp))
 
 summary(df_temp_precip)
 
@@ -492,6 +495,13 @@ df_test_Olympia_d2 <- df_test_d2 %>% filter(station == "Olympia")
 df_test_Margareten_d2 <- df_test_d2 %>% filter(station == "Margareten")
 df_test_Hirsch_d2 <- df_test_d2 %>% filter(station == "Hirsch")
 
+#Hourly data
+df_train_d1_hourly <-  
+  df_temp_precip_hourly %>% 
+  rename(y = "direction_1") %>%
+  filter(year < 2019)
+
+df_train_Arnulf_d1 <- df_train_d1 %>% filter(station == "Arnulf")
 
 # Rearrange in ascending order of time and remove irrelevant columns
 # Arnulf
