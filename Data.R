@@ -9,26 +9,10 @@ library(stringr)
 library(mgcv)
 library(ggplot2)
 
-# #------------------------#
-# #----Utility functions----
-# #------------------------#
-# # Extract hour from the time string
-# extract_hour = function(x) {
-#   return(format(strptime(x, format = "%H:%M:%S"), format = "%H"))
-# }
-# 
-# # Extract month from the time string
-# extract_month = function(x) {
-#   return(as.integer(format(x, "%m")))
-# }
-# 
-# # Extract year from the time string
-# extract_year = function(x) {
-#   return(as.integer(substr(x, 1, 4)))
-# }
-# 
-# # Hourly weather data
-# # Extract year, month, day and hour from the weather data frame
+#------------------------#
+#----Utility functions----
+#------------------------#
+# Extract date information 
 extract_DateTime = function(df) {
 
   df$date = as.character(df$date)
@@ -40,20 +24,10 @@ extract_DateTime = function(df) {
 
   return(df)
 }
-# 
-# extract_yearmonthdayhour = function(df) {
-#   
-#   temp = df$ds
-#   df$hour = as.integer(substr(temp, 12, 13))
-#   df$year = as.integer(substr(temp, 1, 4))
-#   df$month = as.integer(substr(temp, 6, 7))
-#   df$day = as.integer(substr(temp, 9, 10))
-#   df$hour[is.na(df$hour)] <- 0
-#   return(df)
-#   
-# }
 
-
+#------------------#
+#----Import data----
+#------------------#
 # Note that you don't have to the following process from scratch to load cycling data.
 # Instead, just import it from `data_folder`
 getwd() # adjust the path 
@@ -69,7 +43,7 @@ df_cycling %>% distinct(comment)
 # Note that Monday(dayofweek == 0) through Sunday(dayofweek == 6)
 df_cycling %>% distinct(dayofweek)
 
-# IMPORTANT
+## IMPORTANT ##
 # Modify some erroneous values e.g. "2020-04-09 13:59:00" -> "2020-04-09 14:00:00"
 # Kreuther
 df_cycling <- df_cycling %>%
@@ -171,6 +145,7 @@ df_cycling
 #---------------------------------------------#
 #----Load and Reformat cycling/weather data----
 #---------------------------------------------#
+# This is for loading data from the website
 # cycling_url = c(
 #   "https://opendata.muenchen.de/dataset/022a11ff-4dcb-4f03-b7dd-a6c94a094587/resource/66be7619-a672-4382-bf88-e3688c5abc2b/download/rad_2008_15min_06_06_23_r.csv",
 #   "https://opendata.muenchen.de/dataset/022a11ff-4dcb-4f03-b7dd-a6c94a094587/resource/3ef8aad9-a6b0-4c97-a6b7-8c3a63226b37/download/rad_2009_15min_06_06_23_r.csv",
@@ -401,22 +376,6 @@ df %>%
   print(n = Inf)
 
 
-# # Create time column for mvgam package
-# df %>% 
-#   mutate(time_Arnulf = 0,
-#          time_Kreuther = 0,
-#          time_Olympia = 0,
-#          time_Hirsch = 0,
-#          time_Margareten = 0,
-#          time_Erhardt = 0) -> df
-# 
-# df[df$station == "Arnulf",]$time_Arnulf <- seq(1, nrow(df[df$station == "Arnulf",])) 
-# df[df$station == "Kreuther",]$time_Kreuther <- seq(1, nrow(df[df$station == "Kreuther",])) 
-# df[df$station == "Olympia",]$time_Olympia <- seq(1, nrow(df[df$station == "Olympia",]))
-# df[df$station == "Hirsch",]$time_Hirsch <- seq(1, nrow(df[df$station == "Hirsch",]))
-# df[df$station == "Margareten",]$time_Margareten <- seq(1, nrow(df[df$station == "Margareten",]))
-# df[df$station == "Erhardt",]$time_Erhardt <- seq(1, nrow(df[df$station == "Erhardt",]))
-
 # FINAL DATA 
 # I added all.x = TRUE in order to keep all dates 
 # df_all <- merge(df, weather_all, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
@@ -424,6 +383,7 @@ df %>%
 df_temp_precip <- merge(df, temp_precip, by = c("year", "month", "hour", "day"), all.x = TRUE) # nrow == 2,846,100
 df_temp_precip <- df_temp_precip %>% mutate(month_year = (year-2008)*12 + (month-6))
 
+# FINAL DATA (Hourly)
 #nrow(df_temp_precip) -> 2846100/4 -> 711525
 df_temp_precip_hourly <- df_temp_precip %>% group_by(year, month, day, hour,station, date, hour_weekday, holiday, ind, month_year) %>% 
   summarise(direction_1 = sum(direction_1), 
@@ -435,10 +395,10 @@ df_temp_precip_hourly <- df_temp_precip %>% group_by(year, month, day, hour,stat
 summary(df_temp_precip)
 
 
-#----------------------------------------------------------#
-#----Filter for each station with lag----
-#----------------------------------------------------------#
-#Arnulf first day of operation 01.06.2008 
+#----------------------------------------#
+#----Filter for each station with lag----#
+#----------------------------------------#
+# Arnulf first day of operation 01.06.2008 
 df_Arnulf <- df_temp_precip %>% filter(station == "Arnulf")
 df_Arnulf <- df_Arnulf %>% mutate(lag1_d1 = lag(direction_1))
 df_Arnulf <- df_Arnulf %>% mutate(lag1_d2 = lag(direction_2))
@@ -446,7 +406,8 @@ df_Arnulf <- df_Arnulf %>% mutate(lag1_d2 = lag(direction_2))
 df_Arnulf_hourly <- df_temp_precip_hourly %>% filter(station == "Arnulf")
 df_Arnulf_hourly <- df_Arnulf_hourly %>% mutate(lag1_d1 = lag(direction_1))
 df_Arnulf_hourly <- df_Arnulf_hourly %>% mutate(lag1_d2 = lag(direction_2))
-#Kreuther first day of operation 20.06.2008
+
+# Kreuther first day of operation 20.06.2008
 df_Kreuther <- df_temp_precip %>% filter(station == "Kreuther")
 df_Kreuther <- df_Kreuther %>% filter(date >= "2008-06-20")
 df_Kreuther <- df_Kreuther %>% mutate(lag1_d1 = lag(direction_1))
@@ -456,7 +417,8 @@ df_Kreuther_hourly <- df_temp_precip_hourly %>% filter(station == "Kreuther")
 df_Kreuther_hourly <- df_Kreuther_hourly %>% filter(date >= "2008-06-20")
 df_Kreuther_hourly <- df_Kreuther_hourly %>% mutate(lag1_d1 = lag(direction_1))
 df_Kreuther_hourly <- df_Kreuther_hourly %>% mutate(lag1_d2 = lag(direction_2))
-#Olympia first day of operation 30.07.2009
+
+# Olympia first day of operation 30.07.2009
 df_Olympia <- df_temp_precip %>% filter(station == "Olympia")
 df_Olympia <- df_Olympia %>% filter(date >= "2009-07-30")
 df_Olympia <- df_Olympia %>% mutate(lag1_d1 = lag(direction_1))
@@ -466,7 +428,8 @@ df_Olympia_hourly <- df_temp_precip_hourly %>% filter(station == "Olympia")
 df_Olympia_hourly <- df_Olympia_hourly %>% filter(date >= "2009-07-30")
 df_Olympia_hourly <- df_Olympia_hourly %>% mutate(lag1_d1 = lag(direction_1))
 df_Olympia_hourly <- df_Olympia_hourly %>% mutate(lag1_d2 = lag(direction_2))
-#Hirsch first day of operation 07.12.2009
+
+# Hirsch first day of operation 07.12.2009
 df_Hirsch <- df_temp_precip %>% filter(station == "Hirsch")
 df_Hirsch <- df_Hirsch %>% filter(date >= "2009-12-07")
 df_Hirsch <- df_Hirsch %>% mutate(lag1_d1 = lag(direction_1))
@@ -476,7 +439,8 @@ df_Hirsch_hourly <- df_temp_precip_hourly %>% filter(station == "Hirsch")
 df_Hirsch_hourly <- df_Hirsch_hourly %>% filter(date >= "2009-12-07")
 df_Hirsch_hourly <- df_Hirsch_hourly %>% mutate(lag1_d1 = lag(direction_1))
 df_Hirsch_hourly <- df_Hirsch_hourly %>% mutate(lag1_d2 = lag(direction_2))
-#Margareten first day of operation 08.07.2011
+
+# Margareten first day of operation 08.07.2011
 df_Margareten <- df_temp_precip %>% filter(station == "Margareten")
 df_Margareten <- df_Margareten %>% filter(date >= "2011-07-08")
 df_Margareten <- df_Margareten %>% mutate(lag1_d1 = lag(direction_1))
@@ -486,7 +450,8 @@ df_Margareten_hourly <- df_temp_precip_hourly %>% filter(station == "Margareten"
 df_Margareten_hourly <- df_Margareten_hourly %>% filter(date >= "2011-07-08")
 df_Margareten_hourly <- df_Margareten_hourly %>% mutate(lag1_d1 = lag(direction_1))
 df_Margareten_hourly <- df_Margareten_hourly %>% mutate(lag1_d2 = lag(direction_2))
-#Erhardt first day of operation 25.07.2011 
+
+# Erhardt first day of operation 25.07.2011 
 df_Erhardt <- df_temp_precip %>% filter(station == "Erhardt")
 df_Erhardt <- df_Erhardt %>% filter(date >= "2011-07-25")
 df_Erhardt <- df_Erhardt %>% mutate(lag1_d1 = lag(direction_1))

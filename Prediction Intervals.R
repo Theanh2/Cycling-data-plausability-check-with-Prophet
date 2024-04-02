@@ -1,6 +1,6 @@
-#------------------# 
-#theoretical PI ----
-#------------------# 
+#-------------------------------# 
+#----PI with data variability----
+#-------------------------------# 
 
 theoryPI <- function(model, data, direction, confidence) {
   pred <- predict(model, data, type = "link")
@@ -24,9 +24,10 @@ theoryPI <- function(model, data, direction, confidence) {
   }
   return(data)
 }
-#-----------------# 
-#Simulated PI -----
-#-----------------# 
+
+#---------------------------------------------------------------# 
+#----PI with model and data variabilities based on simulation----
+#---------------------------------------------------------------#
 simulation <- function(model, data, direction, n_sims, confidence, seed) {
   
   set.seed(seed)
@@ -62,7 +63,7 @@ simulation <- function(model, data, direction, n_sims, confidence, seed) {
         lb = pis[, 1],
         ub = pis[, 2],
         cov = direction_1 <= ub & direction_1 >= lb)
-  } else { #eventually ifelse to catch user error
+  } else { # eventually ifelse to catch user error
     data <- data %>%
       mutate(
         y_pred = model$family$linkinv(predict(model, data, type = 'link')),
