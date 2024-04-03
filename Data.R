@@ -393,7 +393,7 @@ df_temp_precip_hourly <- df_temp_precip %>% group_by(year, month, day, hour,stat
             ungroup()
 
 summary(df_temp_precip)
-
+summary(df_temp_precip_hourly)
 
 #----------------------------------------#
 #----Filter for each station with lag----#
